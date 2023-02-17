@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>超级计算器</title>
+  <link rel="shortcut icon" href="//codding.cn/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="./boot/css/bootstrap.css">
+  <link rel="stylesheet" href="./boot/css/bootstrap-theme.css">
+  <style>
+    * {padding: 0; margin: 0; font: inherit; box-sizing: border-box;}
+    html, body {height: 100%;}
+    strong {font-weight: bold;}
+    pre {overflow: auto;}
+
+    .c {text-align: center;}
+
+    .flex-h {display: flex;}
+    .flex-h > .auto-flex {flex: 1;}
+
+    .flex {display: flex;}
+    .flex > * {flex: 1;}
+
+    .flex-v {height: 100%; display: flex; flex-direction: column; padding-top: 15px;}
+    .flex-v > * {margin-bottom: 15px;}
+    .flex-v > .auto-flex {flex: 1;}
+    .flex-v > .auto-flex textarea {height: 100%;}
+
+    #app {max-width: 800px; height: 100%; margin: 0 auto; padding: 0 15px;}
+    #app > * {position: relative;}
+    #app .layout-footer {}
+  </style>
+</head>
+<body>
+  
+<div id="app">
+  <div class="flex-v">
+    <div>
+      <div class="btn-group">
+        <span
+          v-for="(item, idx) in tab.list"
+          :class="['btn btn-' + (item.name === curTab ? 'success' : 'default')]"
+          @click="ld.curTab = item.name"
+        >{{item.name}}</span>
+      </div>
+    </div>
+    <pre class="text-danger" v-if="errMsg">{{errMsg}}</pre>
+    <pre v-else><strong>结果：</strong><span>{{result}}</span></pre>
+    <div class="auto-flex">
+      <textarea class="form-control" v-model="ld.str[isMul ? 'mul' : 'exp']"></textarea>
+    </div>
+  </div>
+</div>
+
+<script src="./vue.global.js"></script>
+<script>
+window.vm = Vue.createApp({
+  data() {
+    let ld
+
+    try {
+      ld = JSON.parse(localStorage.ld)
+    } catch (e) {
+      ld = {}
+    }
+
+    ld.curTab = ld.curTab || ''
+    ld.str = ld.str || {}
+    ld.str.mul = ld.str.mul || ''
+    ld.str.exp = ld.str.exp || ''
+
+    return {
+      tab: {
+        list: [
+          {name: '多行加法'},
+          {name: '表达式'},
+        ]
+      },
+      ld,
+      errMsg: '',
+    }
+  },
+  computed: {
+    curTab() {
+      return this.tab.list.some((v) => {
+        return v.name === this.ld.curTab
+      }) ? this.ld.curTab : this.tab.list[0].name
+    },
+    isMul() {
+      return this.curTab === this.tab.list[0].name
+    },
+    str() {
+      return this.ld.str[this.isMul ? 'mul' : 'exp']
+    },
+    result() {
+      try {
+        return (
+          !this.isMul ?
+            eval(this.str) :
+            Number(
+              this.str.split('\n')
+                .filter(s => s.trim())
+                .map(s => Number(s))
+                .reduce((t, v) => t += v, 0).toFixed(6)
+            )
+        )
+      } catch (e) {
+        this.errMsg = e
+      }
+    }
+  },
+  watch: {
+    ld: {
+      deep: true,
+      handler(newVal) {
+        this.errMsg = ''
+        localStorage.ld = JSON.stringify(newVal)
+      },
+    },
+  },
+}).mount('#app')
+</script>
+
+</body>
+</html>
