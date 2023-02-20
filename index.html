@@ -94,16 +94,12 @@ window.vm = Vue.createApp({
     },
     result() {
       try {
-        return (
-          !this.isMul ?
-            eval(this.str) :
-            Number(
-              this.str.split('\n')
-                .filter(s => s.trim())
-                .map(s => Number(s))
-                .reduce((t, v) => t += v, 0).toFixed(6)
-            )
-        )
+        return this.isMul ? Number(
+          this.str.split('\n')
+            .filter(s => s.trim())
+            .map(s => Number(s))
+            .reduce((t, v) => t += v, 0).toFixed(6)
+        ) : eval(this.str)
       } catch (e) {
         this.errMsg = e
       }
